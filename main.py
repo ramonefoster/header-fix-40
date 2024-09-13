@@ -10,23 +10,20 @@ def process_new_files(file_paths):
             explode_cube(file_path)
 
 def main():
-    directory_to_watch = r"test\sub1"  # Change this to the directory you want to monitor
+    directory_to_watch = r"test\sub1"  # Directory you want to monitor
     file_monitor = FileMonitor(directory_to_watch)
 
     try:
-        # Start the file monitor in a separate thread
         file_monitor.start()
         print(f"Monitoring directory: {directory_to_watch}")
 
         while True:
-            # Get the new files detected by the file monitor
             new_files = file_monitor.get_new_files()
 
-            # Process new files (if any)
             if new_files:
                 process_new_files(new_files)
 
-            time.sleep(1)  # Sleep to avoid tight loop
+            time.sleep(1)
 
     except KeyboardInterrupt:
         print("Stopping file monitor...")

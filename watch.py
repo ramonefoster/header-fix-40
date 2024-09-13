@@ -1,5 +1,3 @@
-import time
-import threading
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from queue import Queue
@@ -12,19 +10,17 @@ class NewFileHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         if not event.is_directory:
-            # Add the created file path to the queue
             self.file_queue.put(event.src_path)
 
 # File monitor class to handle watchdog observer
 class FileMonitor:
     def __init__(self, directory_to_watch):
         self.directory_to_watch = directory_to_watch
-        self.file_queue = Queue()  # Queue to communicate between threads
+        self.file_queue = Queue()  
         self.event_handler = NewFileHandler(self.file_queue)
         self.observer = Observer()
 
     def start(self):
-        # Start the observer in a separate thread
         self.observer.schedule(self.event_handler, self.directory_to_watch, recursive=False)
         self.observer.daemon = True
         self.observer.start()
