@@ -21,7 +21,7 @@ class FileMonitor:
         self.observer = Observer()
 
     def start(self):
-        self.observer.schedule(self.event_handler, self.directory_to_watch, recursive=False)
+        self.observer.schedule(self.event_handler, self.directory_to_watch, recursive=True)
         self.observer.daemon = True
         self.observer.start()
         
