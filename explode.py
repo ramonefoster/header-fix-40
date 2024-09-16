@@ -18,7 +18,7 @@ import astropy.io.fits as fits
 from astropy.time import Time
 
 from copy import deepcopy
-
+import time
 
 """
 O padrão do arquivo FITS deve ser salvo com os seguintes dados para que consigamos processar pelo GSTT:
@@ -38,7 +38,7 @@ O padrão do arquivo FITS deve ser salvo com os seguintes dados para que consiga
 """
 
 def explode_cube(path):                
-    try :
+    try :        
         hdul = fits.open(path)
         hdr = hdul[0].header
         num_axis = int(hdr["NAXIS"])
@@ -58,16 +58,25 @@ def explode_cube(path):
         
         #################
         #### This line needs to be adjusted depending on how many underscores there is in the file name
-        frame, filter, suffix = s[-4], s[-3], "{}_{}".format(s[-2],s[-1])
+        # frame, filter, suffix = s[-4], s[-3], "{}_{}".format(s[-2],s[-1])
+        if len(s)==5:
+            prefix, filter, frame, suffix = s[0], s[2], s[3], s[4]
+        else:
+            prefix, filter, frame = s[0], s[2], s[3]
+            suffix = ""
         
+        frame = frame.replace(".fits", "")
+        suffix = suffix.replace(".fits","")
+        filter = filter.replace(".fits","")
         obj = hdr['OBJECT'].replace(" ","")
                 
         for j in range(nslices) :
             
             # set output frame filename
-            outfile = path.replace(basename,"{}_{:05d}_{}_{}_{:05d}.fits".format(obj, int(frame), filter.replace(".fits",""), suffix.replace(".fits",""), j))
+            # outfile = path.replace(basename,"{}_{:05d}_{}_{}_{:05d}.fits".format(obj, int(frame), filter, suffix, j))
+            outfile = path.replace(basename,"{}_{}_{}_{:05d}_{}_{:05d}.fits".format(prefix, obj, filter, int(frame), suffix, j))
             if nslices == 1 :
-                outfile = path.replace(basename,"{}_{:05d}_{}_{}.fits".format(obj, int(frame), filter.replace(".fits",""), suffix.replace(".fits","")))
+                outfile = path.replace(basename,"{}_{}_{}_{:05d}_{}.fits".format(prefix, obj, filter, int(frame), suffix))
 
             # make a deep copy of the main header
             outhdr = deepcopy(hdr)
@@ -103,8 +112,18 @@ def explode_cube(path):
             
             hdu_list.append(primary_hdu)
             
+            max_retries = 10
+            retries = 0
             # write output image file
-            hdu_list.writeto(outfile, overwrite=True, output_verify="fix+warn")
+            while retries < max_retries:
+                try:
+                    # Try to open the file in read mode
+                    hdu_list.writeto(outfile, overwrite=True, output_verify="fix+warn")
+                except IOError:
+                    # File is still being written, wait and retry
+                    retries += 1
+                    time.sleep(int(total_exptime)/max_retries)
+                
 
             print("Finished Job", outfile)
             

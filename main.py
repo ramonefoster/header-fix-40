@@ -10,7 +10,7 @@ def process_new_files(file_paths):
             explode_cube(file_path)
 
 def main():
-    directory_to_watch = r"test"  # Directory you want to monitor
+    directory_to_watch = r"\\tcspd40\ME\20240916"  # Directory you want to monitor
     file_monitor = FileMonitor(directory_to_watch)
 
     try:
